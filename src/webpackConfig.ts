@@ -49,11 +49,11 @@ module.exports = {
   module: {
     rules: [
       {
-        test: /\.ts$/,
+        test: /\\.ts$/,
         loader: 'ts-loader'
       },
       {
-        test:/\.css/,
+        test:/\\.css/,
         loader: path.resolve(__dirname, 'loader.js')
       }
     ]

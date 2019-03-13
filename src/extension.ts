@@ -1,42 +1,42 @@
-// The module 'vscode' contains the VS Code extensibility API
-// Import the module and reference it with the alias vscode in your code below
 import * as vscode from 'vscode';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as util from 'util';
-
+import makeFilesTree from './util/makeFilesTree';
 import webpackConfig from './webpackConfig';
+
+const writeFile = util.promisify(fs.writeFile);
+const readFile = util.promisify(fs.readFile);
+const readdir = util.promisify(fs.readdir);
+
+const {commands, window} = vscode;
 
 export function activate(context: vscode.ExtensionContext) {
 
-  let disposable = vscode.commands.registerCommand('extension.initProject', () => {
+  let disposable = commands.registerCommand('extension.initProject', async () => {
     const { name, rootPath } = vscode.workspace;
-
+    const templatePath = path.resolve(__dirname, '../template');
     if (name && rootPath) {
-      const writeFile = util.promisify(fs.writeFile);
-      const readFile = util.promisify(fs.readFile);
-      const readdir = util.promisify(fs.readdir);
-      readdir(rootPath)
-        .then(files => {
-          if (files.length) {
-            vscode.window.showWarningMessage('当前不在一个空的文件夹');
-          } else {
-            writeFile(path.resolve(rootPath, 'webpack.config.js'), webpackConfig);
-            let term = vscode.window.activeTerminal;
-            if (!term) {
-              term = vscode.window.createTerminal('init');
-            }
-            term.show();
-            term.sendText(
-              'yarn add typescript webpack webpack-cli webpack-dev-server html-webpack-plugin friendly-errors-webpack-plugin -D'
-            );
-          }
-        })
-        .catch(err => {
-          vscode.window.showErrorMessage(err.message);
-        });
+      try {
+        const files = await readdir(rootPath);
+        if (files.length) {
+          window.showWarningMessage('当前不在一个空的文件夹');
+        } else {
+          writeFile(path.resolve(rootPath, 'webpack.config.js'), webpackConfig);
+          const [content, pkg] = await Promise.all([
+            readFile(path.resolve(templatePath, 'public/index.html'), 'utf8'),
+            readFile(path.resolve(templatePath, 'package.json'), 'utf8')
+          ]);
+          makeFilesTree(rootPath, {
+            'public/index.html': content,
+            'package.json':pkg
+          });
+        }
+      } catch(e) {
+        window.showErrorMessage(e.message);
+      }
     } else {
-      vscode.window.showInformationMessage('请打开一个文件夹');
+      window.showInformationMessage('请打开一个文件夹');
     }
   });
 

@@ -3,10 +3,16 @@
 	"publisher": "rainke",
 	"displayName": "initProject",
 	"description": "初始化一个工程",
-	"version": "0.0.1",
+	"version": "0.0.2",
 	"engines": {
 		"vscode": "^1.32.0"
 	},
+	"homepage": "https://github.com/rainke/init-project/blob/master/README.md",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/rainke/init-project.git"
+	},
+
 	"categories": [
 		"Other"
 	],
